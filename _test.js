@@ -25,11 +25,11 @@ var els = {};
 function getEl(id){ if(!els[id]) els[id]=makeEl(id); return els[id]; }
 
 var views = [];
-['today','plan','stats','history'].forEach(function(r){
+['today','plan','stats','history','pomodoro'].forEach(function(r){
   var v = makeEl('view-'+r); v._attrs['data-route']=r; views.push(v);
 });
 var tabs = [];
-['today','plan','stats','history'].forEach(function(g){
+['today','plan','stats','history','pomodoro'].forEach(function(g){
   var t = makeEl('tab-'+g); t._attrs['data-go']=g; tabs.push(t);
 });
 
@@ -125,6 +125,37 @@ goTab('history');
 var histHtml = getEl('view-history').innerHTML;
 ok(histHtml.indexOf('9月7日')>-1, '記錄包含今天日期');
 ok(histHtml.indexOf('1/2 完成')>-1, '記錄顯示 1/2 完成');
+
+console.log('== 番茄鐘 ==');
+goTab('pomodoro');
+var pomoHtml = getEl('view-pomodoro').innerHTML;
+ok(pomoHtml.indexOf('時間設定')>-1, '番茄鐘有時間設定區');
+ok(pomoHtml.indexOf('pomo-ring')>-1, '番茄鐘有進度圓環');
+ok(pomoHtml.indexOf('專注')>-1 && pomoHtml.indexOf('短休')>-1 && pomoHtml.indexOf('長休')>-1, '番茄鐘有三種模式切換');
+ok(pomoHtml.indexOf('播放音樂')>-1, '番茄鐘頁包含「播放音樂」');
+ok(pomoHtml.indexOf('pomoStart')>-1, '有開始/暫停按鈕');
+ok(pomoHtml.indexOf('pomoReset')>-1, '有重置按鈕');
+ok(getEl('pomoTime').textContent==='25:00', '初始計時顯示 25:00');
+ok(getEl('pomoSubj').textContent.indexOf('自由專注')>-1, '未指定科目時顯示「自由專注」');
+ok(getEl('pomoDots').innerHTML.indexOf('0')>-1, '今日番茄數初始為 0');
+
+console.log('== 從今日卡片啟動番茄鐘 ==');
+goTab('today');
+clickBtn({'data-act':'pomo','data-subj':'英文'});
+goTab('pomodoro');
+ok(getEl('pomoSubj').textContent.indexOf('英文')>-1, '點卡片「番茄鐘」後顯示正在為「英文」計時');
+var savedPomo = JSON.parse(storage['studyCheckin_v1']);
+ok(savedPomo.pomo && savedPomo.pomo.subject==='英文', '科目已寫入 localStorage');
+
+console.log('== 統計頁番茄數 ==');
+goTab('stats');
+var statsHtml2 = getEl('view-stats').innerHTML;
+ok(statsHtml2.indexOf('累計番茄數')>-1, '統計頁顯示「累計番茄數」');
+
+console.log('== 音樂播放 ==');
+goTab('pomodoro');
+ok(pomoHtml.indexOf('musicUrl')>-1, '有音樂網址輸入框');
+ok(pomoHtml.indexOf('musicPlay')>-1, '有播放按鈕');
 
 console.log('\n結果: '+pass+' 通過, '+fail+' 失敗');
 process.exit(fail>0?1:0);

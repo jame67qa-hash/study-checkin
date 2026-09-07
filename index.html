@@ -177,6 +177,35 @@ nav.tabbar{
 .tab svg{width:22px;height:22px;}
 .tab.active{color:var(--accent-deep);}
 .tab.active svg{stroke:var(--accent-deep);}
+/* ===== 番茄鐘 ===== */
+.pomo-card{text-align:center;}
+.pomo-mode{display:flex;gap:8px;justify-content:center;margin-bottom:12px;}
+.mode-btn{flex:1;max-width:120px;padding:9px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted);background:#FBF9F3;border:1px solid var(--line);}
+.mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pomo-subj{font-size:13px;color:var(--accent-deep);font-weight:600;margin-bottom:10px;}
+.pomo-ring-wrap{position:relative;width:200px;margin:0 auto;}
+.pomo-ring{display:block;}
+.pomo-ring .bg{stroke:#E6E2D4;}
+.pomo-ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s linear;}
+.pomo-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;letter-spacing:1px;color:var(--ink);}
+.pomo-controls{display:flex;gap:8px;margin-top:16px;}
+.pomo-controls .check-btn{flex:1;margin:0;}
+.dots{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:transparent;}
+.dot.filled{background:var(--accent);}
+.dot-note{font-size:12px;color:var(--muted);margin-left:4px;}
+.dot-note b{color:var(--accent-deep);}
+.pomo-note{font-size:12px;color:var(--muted);margin-top:8px;}
+.dur-card .dur-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.dur-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px dashed var(--line);font-size:13px;}
+.dur-row:first-of-type{border-top:none;}
+.stepper{display:flex;align-items:center;gap:10px;}
+.stepper button{width:32px;height:32px;border-radius:9px;background:#FBF9F3;border:1px solid var(--line);font-size:16px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center;}
+.stepper span{min-width:30px;text-align:center;font-size:14px;font-weight:700;}
+/* 音樂播放 */
+#musicUrl{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;background:#FBF9F3;color:var(--ink);}
+#musicUrl:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
 @media (prefers-reduced-motion:reduce){
   .seal{animation:none;}
   .ring .fg,.bar-fill{transition:none;}
@@ -197,6 +226,7 @@ nav.tabbar{
 
   <main>
     <section class="view" id="view-today" data-route="today"></section>
+    <section class="view" id="view-pomodoro" data-route="pomodoro"></section>
     <section class="view" id="view-plan" data-route="plan"></section>
     <section class="view" id="view-stats" data-route="stats"></section>
     <section class="view" id="view-history" data-route="history"></section>
@@ -206,6 +236,10 @@ nav.tabbar{
     <button class="tab" data-go="today" aria-label="今日打卡">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.8V6M16 2.8V6"/><path d="M9.5 15.5 11.5 17.5 15 13.5"/></svg>
       <span>今日</span>
+    </button>
+    <button class="tab" data-go="pomodoro" aria-label="番茄鐘">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 5V3M9 2.5h6"/><path d="M12 9.5V13l2.6 1.6"/></svg>
+      <span>番茄鐘</span>
     </button>
     <button class="tab" data-go="plan" aria-label="每週計畫">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3V4.5Z"/><path d="M7 20a3 3 0 0 1 0-6h11"/><path d="M8 9h6M8 12.5h4"/></svg>
@@ -275,13 +309,23 @@ function isWeekendKey(key){var w=weekdayOf(key);return w===0||w===6;}
 
 /* ===== 資料 ===== */
 var LS_KEY='studyCheckin_v1';
+var POMO_DEF={mode:'focus',running:false,endAt:null,left:25*60,focusInCycle:0,total:0,subject:'',dur:{focus:25,short:5,long:15}};
+var MUSIC_DEF={url:'',history:[],volume:0.7};
 var state=load();
 function load(){
+  var d={records:{},pomo:JSON.parse(JSON.stringify(POMO_DEF)),music:JSON.parse(JSON.stringify(MUSIC_DEF))};
   try{
     var raw=localStorage.getItem(LS_KEY);
-    if(raw){var o=JSON.parse(raw);if(o&&o.records)return o;}
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o){
+        if(o.records)d.records=o.records;
+        if(o.pomo)d.pomo=Object.assign({},POMO_DEF,o.pomo);
+        if(o.music)d.music=Object.assign({},MUSIC_DEF,o.music);
+      }
+    }
   }catch(e){}
-  return {records:{}};
+  return d;
 }
 function save(){
   try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
@@ -309,14 +353,16 @@ function chipHtml(cat,label){
 function itemCard(item,type,idx){
   var seal=item.done?'<div class="seal" aria-hidden="true">完成</div>':'';
   var doneLine=item.done?'<div class="done-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>已完成 · '+esc(item.time||'')+'</div>':'';
-  var actions='';
+  var pomoBtn='<button class="check-btn" style="margin:0;flex:0 0 auto;background:transparent;color:var(--accent);border:1px solid var(--accent)" data-act="pomo" data-subj="'+esc(item.subj)+'">番茄鐘</button>';
+  var actions='<div style="display:flex;gap:8px;margin-top:10px;">';
   if(!item.done){
-    actions+='<button class="check-btn" data-act="check" data-type="'+type+'" data-idx="'+idx+'">打卡</button>';
-    if(type==='custom')actions+='<button class="check-btn ghost" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
+    actions+='<button class="check-btn" style="margin:0;flex:1" data-act="check" data-type="'+type+'" data-idx="'+idx+'">打卡</button>';
+    if(type==='custom')actions+='<button class="check-btn ghost" style="margin:0;flex:1" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
   }else{
-    actions+='<button class="check-btn ghost" data-act="uncheck" data-type="'+type+'" data-idx="'+idx+'">取消打卡</button>';
-    if(type==='custom')actions+='<button class="check-btn ghost" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
+    actions+='<button class="check-btn ghost" style="margin:0;flex:1" data-act="uncheck" data-type="'+type+'" data-idx="'+idx+'">取消打卡</button>';
+    if(type==='custom')actions+='<button class="check-btn ghost" style="margin:0;flex:1" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
   }
+  actions+=pomoBtn+'</div>';
   return '<div class="item'+(item.done?' is-done':'')+'">'+seal+
     '<div class="name">'+esc(item.subj)+'</div>'+
     '<span class="dur">'+item.dur+' 分</span>'+
@@ -452,6 +498,7 @@ function renderStats(){
     '<div class="stat-card"><div class="sv num">'+wk.rate+'<small>%</small></div><div class="sl">本週完成率</div></div>'+
     '<div class="stat-card"><div class="sv num">'+all+'</div><div class="sl">累計打卡次數</div></div>'+
     '<div class="stat-card"><div class="sv num">'+wk.done+'<small> / '+wk.total+'</small></div><div class="sl">本週完成項目</div></div>'+
+    '<div class="stat-card"><div class="sv num">'+state.pomo.total+'</div><div class="sl">累計番茄數</div></div>'+
     '</div>';
   html+='<div class="sec-title">本週每日進度</div>';
   html+='<div class="card"><div class="bars">';
@@ -494,6 +541,200 @@ function renderHistory(){
   document.getElementById('view-history').innerHTML=html;
 }
 
+/* ===== 番茄鐘 ===== */
+function ytId(url){
+  var m=String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return m?m[1]:null;
+}
+function pomoDurSec(mode){return (state.pomo.dur[mode]||25)*60;}
+function pomoDurMin(mode){return state.pomo.dur[mode]||25;}
+function switchPomo(mode,auto){
+  var p=state.pomo;
+  p.mode=mode;p.left=pomoDurSec(mode);p.running=!!auto;
+  p.endAt=auto?Date.now()+p.left*1000:null;
+  save();updatePomoUI();
+}
+function startPomo(){
+  var p=state.pomo;
+  if(p.left<=0)p.left=pomoDurSec(p.mode);
+  p.running=true;p.endAt=Date.now()+p.left*1000;
+  save();updatePomoUI();
+}
+function pausePomo(){
+  var p=state.pomo;
+  if(p.running){
+    p.left=Math.max(0,Math.round((p.endAt-Date.now())/1000));
+    p.running=false;p.endAt=null;save();updatePomoUI();
+  }
+}
+function resetPomo(){
+  var p=state.pomo;
+  p.running=false;p.endAt=null;p.left=pomoDurSec(p.mode);
+  save();updatePomoUI();
+}
+function adjustDur(k,d){
+  var p=state.pomo;
+  if(p.running)return;
+  p.dur[k]=Math.min(120,Math.max(1,p.dur[k]+d));
+  if(p.mode===k)p.left=p.dur[k]*60;
+  save();updatePomoUI();
+  var el=document.getElementById('dv'+k);if(el)el.textContent=p.dur[k];
+}
+function beep(){
+  try{
+    var Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return;
+    var ctx=new Ctx();
+    var o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=880;g.gain.value=0.22;
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.setValueAtTime(880,ctx.currentTime);
+    o.frequency.setValueAtTime(660,ctx.currentTime+0.16);
+    o.start();o.stop(ctx.currentTime+0.36);
+    o.onended=function(){try{ctx.close();}catch(e){}};
+  }catch(e){}
+}
+function pomoComplete(){
+  beep();
+  if(navigator.vibrate){try{navigator.vibrate([200,100,200]);}catch(e){}}
+  var p=state.pomo;
+  if(p.mode==='focus'){
+    p.total++;
+    p.focusInCycle=(p.focusInCycle+1)%4;
+    switchPomo(p.focusInCycle===0?'long':'short',true);
+  }else{
+    switchPomo('focus',true);
+  }
+}
+function tick(){
+  var p=state.pomo;
+  if(!p.running)return;
+  var rem=Math.max(0,Math.round((p.endAt-Date.now())/1000));
+  p.left=rem;save();updatePomoUI();
+  if(rem<=0)pomoComplete();
+}
+function updatePomoUI(){
+  var p=state.pomo;
+  var el=document.getElementById('pomoTime');
+  if(el)el.textContent=pad(Math.floor(p.left/60))+':'+pad(p.left%60);
+  var ringEl=document.getElementById('pomoRing');
+  if(ringEl){
+    var circ=2*Math.PI*84,durSec=pomoDurSec(p.mode);
+    var frac=durSec>0?p.left/durSec:0;if(frac<0)frac=0;if(frac>1)frac=1;
+    ringEl.innerHTML='<svg class="pomo-ring" viewBox="0 0 200 200" width="200" height="200">'+
+      '<circle class="bg" cx="100" cy="100" r="84" fill="none" stroke-width="10"></circle>'+
+      '<circle class="fg" cx="100" cy="100" r="84" fill="none" stroke-width="10" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-frac))+'" transform="rotate(-90 100 100)"></circle></svg>';
+  }
+  var modes=document.querySelectorAll('#view-pomodoro .mode-btn');
+  for(var i=0;i<modes.length;i++)modes[i].classList.toggle('active',modes[i].getAttribute('data-mode')===p.mode);
+  var st=document.getElementById('pomoStart');
+  if(st)st.textContent=p.running?'暫停':'開始';
+  var sj=document.getElementById('pomoSubj');
+  if(sj)sj.textContent=p.subject?('正在為「'+p.subject+'」計時'):'自由專注';
+  var dots=document.getElementById('pomoDots');
+  if(dots){
+    var hd='';
+    for(var j=0;j<4;j++)hd+='<span class="dot'+(j<p.focusInCycle?' filled':'')+'"></span>';
+    dots.innerHTML=hd+'<span class="dot-note">今日完成 <b>'+p.total+'</b> 顆番茄</span>';
+  }
+  var note=document.getElementById('pomoNote');
+  if(note)note.textContent=p.mode==='focus'?'專注時間，專心學習':'休息時間，起來活動一下';
+}
+function renderMusicInto(){
+  var box=document.getElementById('musicPlayer');
+  if(!box)return;
+  box.innerHTML='';
+  var m=state.music;
+  if(!m.url){
+    box.innerHTML='<div class="stats-note">尚未設定音樂連結。</div>';
+  }else{
+    var id=ytId(m.url);
+    if(id){
+      box.innerHTML='<div style="position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#111">'+
+        '<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>';
+    }else{
+      box.innerHTML='<audio controls autoplay style="width:100%" src="'+esc(m.url)+'" preload="metadata"></audio>';
+    }
+  }
+  var hist=document.getElementById('musicHistory');
+  if(!hist)return;
+  hist.innerHTML='';
+  if(m.history.length){
+    var lbl=document.createElement('div');
+    lbl.textContent='最近播放';
+    lbl.style.cssText='font-size:11px;color:var(--accent-deep);font-weight:700;margin:6px 0 2px;';
+    hist.appendChild(lbl);
+    for(var i=0;i<m.history.length;i++){
+      (function(u){
+        var row=document.createElement('button');
+        row.type='button';
+        row.textContent=u;
+        row.style.cssText='display:block;width:100%;text-align:left;font-size:11px;color:#3B3C3D;background:#FBF9F3;border:1px solid #E5E0D4;border-radius:8px;padding:8px 10px;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        row.addEventListener('click',function(){state.music.url=u;save();renderMusicInto();});
+        hist.appendChild(row);
+      })(m.history[i]);
+    }
+  }
+}
+function playMusic(u){
+  var m=state.music;
+  m.url=u;
+  m.history=[u].concat(m.history.filter(function(x){return x!==u;})).slice(0,5);
+  save();renderMusicInto();
+}
+function renderPomodoro(){
+  var h='';
+  h+='<div class="card pomo-card">';
+  h+='<div class="pomo-mode">'+
+    '<button class="mode-btn" data-mode="focus">專注</button>'+
+    '<button class="mode-btn" data-mode="short">短休</button>'+
+    '<button class="mode-btn" data-mode="long">長休</button></div>';
+  h+='<div class="pomo-subj" id="pomoSubj"></div>';
+  h+='<div class="pomo-ring-wrap"><div id="pomoRing"></div><div class="pomo-time" id="pomoTime">25:00</div></div>';
+  h+='<div class="pomo-controls"><button class="check-btn" id="pomoStart">開始</button>'+
+    '<button class="check-btn ghost" id="pomoReset">重置</button></div>';
+  h+='<div class="dots" id="pomoDots"></div>';
+  h+='<div class="pomo-note" id="pomoNote"></div>';
+  h+='</div>';
+  h+='<div class="card dur-card"><div class="dur-title">時間設定（分鐘）</div>'+
+    '<div class="dur-row"><span>專注</span><div class="stepper"><button data-dur="focus" data-d="-5">−</button><span id="dvfocus">25</span><button data-dur="focus" data-d="5">＋</button></div></div>'+
+    '<div class="dur-row"><span>短休</span><div class="stepper"><button data-dur="short" data-d="-1">−</button><span id="dvshort">5</span><button data-dur="short" data-d="1">＋</button></div></div>'+
+    '<div class="dur-row"><span>長休</span><div class="stepper"><button data-dur="long" data-d="-5">−</button><span id="dvlong">15</span><button data-dur="long" data-d="5">＋</button></div></div>'+
+    '</div>';
+  h+='<div class="sec-title">播放音樂</div>';
+  h+='<div class="card">'+
+    '<input id="musicUrl" placeholder="貼上音樂連結（mp3 網址或 YouTube 連結）">'+
+    '<button class="check-btn" id="musicPlay" style="margin-top:8px">播放</button>'+
+    '<div id="musicPlayer" style="margin-top:10px"></div>'+
+    '<div id="musicHistory" style="margin-top:6px"></div>'+
+    '<div class="stats-note" style="margin-top:8px">支援直接音訊檔（.mp3 等）與 YouTube 影片，播放需連網。</div>'+
+    '</div>';
+  document.getElementById('view-pomodoro').innerHTML=h;
+
+  var modes=document.querySelectorAll('#view-pomodoro .mode-btn');
+  for(var i=0;i<modes.length;i++){
+    (function(mb){mb.addEventListener('click',function(){switchPomo(mb.getAttribute('data-mode'),false);});})(modes[i]);
+  }
+  document.getElementById('pomoStart').addEventListener('click',function(){var p=state.pomo;if(p.running)pausePomo();else startPomo();});
+  document.getElementById('pomoReset').addEventListener('click',resetPomo);
+  var durs=document.querySelectorAll('#view-pomodoro [data-dur]');
+  for(var j=0;j<durs.length;j++){
+    (function(db){db.addEventListener('click',function(){adjustDur(db.getAttribute('data-dur'),parseInt(db.getAttribute('data-d'),10));});})(durs[j]);
+  }
+  document.getElementById('musicPlay').addEventListener('click',function(){
+    var u=document.getElementById('musicUrl').value.trim();
+    if(u)playMusic(u);
+  });
+  /* 顯示目前設定值 */
+  var p=state.pomo;
+  var f=document.getElementById('dvfocus');if(f)f.textContent=p.dur.focus;
+  var s=document.getElementById('dvshort');if(s)s.textContent=p.dur.short;
+  var l=document.getElementById('dvlong');if(l)l.textContent=p.dur.long;
+  var mu=document.getElementById('musicUrl');if(mu)mu.value=state.music.url;
+  updatePomoUI();
+  renderMusicInto();
+}
+
 /* ===== 互動事件 ===== */
 document.addEventListener('click',function(e){
   var btn=e.target.closest('button[data-act]');
@@ -507,6 +748,9 @@ document.addEventListener('click',function(e){
   }else if(act==='delcustom'){
     idx=+btn.getAttribute('data-idx');
     rec(key).custom.splice(idx,1);save();renderToday();
+  }else if(act==='pomo'){
+    state.pomo.subject=btn.getAttribute('data-subj')||'';
+    save();location.hash='pomodoro';
   }
 });
 
@@ -517,7 +761,7 @@ function updateHead(){
   document.getElementById('headDateLabel').textContent=lab.md;
   document.getElementById('headDateSub').textContent=lab.wd+(isWeekendKey(k)?' · 假日':'');
 }
-var RENDER={today:renderToday,plan:renderPlan,stats:renderStats,history:renderHistory};
+var RENDER={today:renderToday,plan:renderPlan,stats:renderStats,history:renderHistory,pomodoro:renderPomodoro};
 function route(){
   var h=(location.hash||'#today').replace('#','');
   if(!RENDER[h])h='today';
@@ -535,6 +779,7 @@ for(var ti=0;ti<tabs.length;ti++){
 
 /* ===== 初始化 ===== */
 route();
+setInterval(tick,500);
 if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
   window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});
 }
