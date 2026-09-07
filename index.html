@@ -205,6 +205,13 @@ nav.tabbar{
 /* 音樂播放 */
 #musicUrl{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;background:#FBF9F3;color:var(--ink);}
 #musicUrl:focus{outline:2px solid var(--accent);outline-offset:1px;}
+/* 建議時段與時間管理 */
+.tline{font-size:11.5px;color:var(--muted);margin-top:5px;}
+.ptime{font-size:11px;color:var(--accent-deep);font-weight:700;margin:2px 0 1px;}
+.mgmt{margin-bottom:12px;}
+.mgmt-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.rules{margin:0;padding-left:18px;font-size:13px;color:#3B3C3D;line-height:1.7;}
+.rules li{margin:3px 0;}
 
 @media (prefers-reduced-motion:reduce){
   .seal{animation:none;}
@@ -285,23 +292,23 @@ var CATNAME={ch:'國文',en:'英文',ma:'數學',ac:'會計',ec:'經濟',pc:'電
 
 /* ===== 每週計畫，索引對應 getDay()：0=日 1=一 2=二 3=三 4=四 5=五 6=六 ===== */
 var PLAN=[
-  [/*日*/{subj:'預習國文＋英文',dur:90,note:'預習下週進度',cat:'rev'},
-         {subj:'預習數學＋會計／經濟',dur:90,note:'預習下週進度',cat:'rev'},
-         {subj:'整理筆記＋訂目標',dur:75,note:'錯題本整理、訂下週目標，21:30 前收工',cat:'rev'}],
-  [/*一*/{subj:'英文',dur:60,note:'背單字 10 個＋複習當天英語會話句型',cat:'en'},
-         {subj:'數學',dur:60,note:'複習當天應用數學進度＋練 3~5 題',cat:'ma'}],
-  [/*二*/{subj:'會計',dur:70,note:'複習當天進度＋分錄／報表練習',cat:'ac'},
-         {subj:'電腦實作',dur:50,note:'複習當天數位科技／軟體操作',cat:'pc'}],
-  [/*三*/{subj:'經濟',dur:70,note:'複習當天進度＋名詞與圖表整理',cat:'ec'},
-         {subj:'會計',dur:50,note:'趁記憶新鮮補弱點、做錯題',cat:'ac'}],
-  [/*四*/{subj:'數學',dur:70,note:'練弱點題型＋當天進度習題',cat:'ma'},
-         {subj:'英文',dur:50,note:'單字複習＋文法筆記整理',cat:'en'}],
-  [/*五*/{subj:'經濟',dur:60,note:'當週重點統整＋整理名詞表',cat:'ec'},
-         {subj:'國文',dur:60,note:'課文／註釋複習、完成作業',cat:'ch'}],
-  [/*六*/{subj:'國英數總複習',dur:90,note:'當週總複習＋錯題回顧',cat:'rev'},
-         {subj:'會計／經濟',dur:90,note:'重點整理＋習題演練',cat:'ac'},
-         {subj:'商業實務',dur:90,note:'複習＋完成作業',cat:'bu'},
-         {subj:'電腦練習＋小測',dur:60,note:'數位／軟體／資料庫操作＋當週小測',cat:'pc'}]
+  [/*日*/{subj:'預習國文＋英文',dur:90,note:'預習下週進度',cat:'rev',slot:'14:00–15:30'},
+         {subj:'預習數學＋會計／經濟',dur:90,note:'預習下週進度',cat:'rev',slot:'15:40–17:10'},
+         {subj:'整理筆記＋訂目標',dur:75,note:'錯題本整理、訂下週目標，21:30 前收工',cat:'rev',slot:'17:20–18:35'}],
+  [/*一*/{subj:'英文',dur:60,note:'背單字 10 個＋複習當天英語會話句型',cat:'en',slot:'18:30–19:30'},
+         {subj:'數學',dur:60,note:'複習當天應用數學進度＋練 3~5 題',cat:'ma',slot:'19:40–20:40'}],
+  [/*二*/{subj:'會計',dur:70,note:'複習當天進度＋分錄／報表練習',cat:'ac',slot:'18:30–19:40'},
+         {subj:'電腦實作',dur:50,note:'複習當天數位科技／軟體操作',cat:'pc',slot:'19:50–20:40'}],
+  [/*三*/{subj:'經濟',dur:70,note:'複習當天進度＋名詞與圖表整理',cat:'ec',slot:'18:30–19:40'},
+         {subj:'會計',dur:50,note:'趁記憶新鮮補弱點、做錯題',cat:'ac',slot:'19:50–20:40'}],
+  [/*四*/{subj:'數學',dur:70,note:'練弱點題型＋當天進度習題',cat:'ma',slot:'18:30–19:40'},
+         {subj:'英文',dur:50,note:'單字複習＋文法筆記整理',cat:'en',slot:'19:50–20:40'}],
+  [/*五*/{subj:'經濟',dur:60,note:'當週重點統整＋整理名詞表',cat:'ec',slot:'18:30–19:30'},
+         {subj:'國文',dur:60,note:'課文／註釋複習、完成作業',cat:'ch',slot:'19:40–20:40'}],
+  [/*六*/{subj:'國英數總複習',dur:90,note:'當週總複習＋錯題回顧',cat:'rev',slot:'09:00–10:30'},
+         {subj:'會計／經濟',dur:90,note:'重點整理＋習題演練',cat:'ac',slot:'10:40–12:10'},
+         {subj:'商業實務',dur:60,note:'複習＋完成作業',cat:'bu',slot:'13:30–14:30'},
+         {subj:'電腦練習＋小測',dur:60,note:'數位／軟體／資料庫操作＋當週小測',cat:'pc',slot:'14:40–15:40'}]
 ];
 var DAYNAME=['週日','週一','週二','週三','週四','週五','週六'];
 var DAYNOTE=['預習收心日','平日','平日','平日','平日','平日','深度複習日'];
@@ -350,9 +357,11 @@ function chipHtml(cat,label){
   var c=CATS[cat]||CATS.cu;
   return '<span class="chip" style="background:'+c.bg+';border:1px solid '+c.bd+';">'+esc(label)+'</span>';
 }
+function pomoCount(dur){return Math.max(1,Math.round(dur/25));}
 function itemCard(item,type,idx){
   var seal=item.done?'<div class="seal" aria-hidden="true">完成</div>':'';
   var doneLine=item.done?'<div class="done-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>已完成 · '+esc(item.time||'')+'</div>':'';
+  var slotLine=item.slot?'<div class="tline">建議時段 '+esc(item.slot)+' · 約 '+pomoCount(item.dur)+' 個番茄</div>':'';
   var pomoBtn='<button class="check-btn" style="margin:0;flex:0 0 auto;background:transparent;color:var(--accent);border:1px solid var(--accent)" data-act="pomo" data-subj="'+esc(item.subj)+'">番茄鐘</button>';
   var actions='<div style="display:flex;gap:8px;margin-top:10px;">';
   if(!item.done){
@@ -368,7 +377,7 @@ function itemCard(item,type,idx){
     '<span class="dur">'+item.dur+' 分</span>'+
     chipHtml(item.cat,CATNAME[item.cat]||item.cat)+
     '<div class="note">'+esc(item.note||'')+'</div>'+
-    doneLine+actions+'</div>';
+    slotLine+doneLine+actions+'</div>';
 }
 function renderToday(){
   var key=todayKey();
@@ -381,7 +390,7 @@ function renderToday(){
   /* 合併計畫範本與打卡狀態 */
   function sessionItem(i){
     var t=sessions[i],p=r.plan[i];
-    return {subj:t.subj,dur:t.dur,note:t.note,cat:t.cat,done:!!p.done,time:p.time};
+    return {subj:t.subj,dur:t.dur,note:t.note,cat:t.cat,slot:t.slot,done:!!p.done,time:p.time};
   }
 
   var html='<div class="progress-card card">';
@@ -441,13 +450,21 @@ function planDayCard(w,extraClass){
     '<div class="d-head"><span class="d-name">'+DAYNAME[w]+' · '+DAYNOTE[w]+'</span><span class="d-total">'+(w===0||w===6?'約 '+(Math.round(tot/60))+' 小時':'共 '+tot+' 分鐘')+'</span></div>';
   for(i=0;i<s.length;i++){
     h+='<div class="plan-item"><div class="pd"><div class="pn">'+esc(s[i].subj)+'</div>'+
+      (s[i].slot?'<div class="ptime">建議 '+esc(s[i].slot)+'</div>':'')+
       '<div class="pdur">'+esc(s[i].note)+'</div></div>'+
       chipHtml(s[i].cat,CATNAME[s[i].cat])+'<div class="pdur" style="flex:none">'+s[i].dur+' 分</div></div>';
   }
   return h+'</div>';
 }
 function renderPlan(){
-  var html='<div class="sec-title">平日 · 每天最多 2 小時、1–2 科</div>';
+  var html='<div class="card mgmt"><div class="mgmt-title">時間管理原則</div>'+
+    '<ul class="rules">'+
+    '<li>平日：每天最多 2 小時、1–2 科，建議 18:30 開始，科目之間休息 10 分鐘</li>'+
+    '<li>假日：每天最多 5 小時，分成上午、下午兩段，中午好好休息</li>'+
+    '<li>搭配番茄鐘：專注 25 分＋休息 5 分，一科約 2–4 顆番茄</li>'+
+    '<li>週日預習下週進度、週六當週總複習；21:30 前收工，維持規律作息</li>'+
+    '</ul></div>';
+  html+='<div class="sec-title">平日 · 每天最多 2 小時、1–2 科</div>';
   for(var w=1;w<=5;w++)html+=planDayCard(w,'');
   html+='<div class="sec-title">假日 · 每天最多 5 小時</div>';
   html+=planDayCard(6,'weekend');

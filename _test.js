@@ -86,6 +86,8 @@ ok(todayHtml.indexOf('數學')>-1, '今日包含「數學」');
 ok(todayHtml.indexOf('今日進度')>-1, '顯示今日進度卡');
 ok(todayHtml.indexOf('0<small> / 2 項</small>')>-1, '初始進度 0/2');
 ok(todayHtml.indexOf('新增自訂項目')>-1, '有「新增自訂項目」按鈕');
+ok(todayHtml.indexOf('建議時段')>-1, '今日卡片顯示建議時段');
+ok(todayHtml.indexOf('個番茄')>-1, '今日卡片顯示建議番茄數');
 
 console.log('== 打卡流程 ==');
 clickBtn({'data-act':'check','data-type':'plan','data-idx':'0'});
@@ -119,6 +121,10 @@ var planHtml = getEl('view-plan').innerHTML;
 });
 ok(planHtml.indexOf('電腦實作')>-1, '週二包含「電腦實作」（無專題實作）');
 ok(planHtml.indexOf('專題實作')===-1, '計畫不含「專題實作」');
+ok(planHtml.indexOf('時間管理原則')>-1, '計畫頁顯示「時間管理原則」');
+ok(planHtml.indexOf('約 5 小時')>-1, '週六總時數約 5 小時（不超過 5 小時）');
+ok(planHtml.indexOf('約 4 小時')>-1, '週日總時數約 4 小時（不超過 5 小時）');
+ok(planHtml.indexOf('建議 09:00–10:30')>-1, '週六第一科顯示建議時段');
 
 console.log('== 記錄畫面 ==');
 goTab('history');
