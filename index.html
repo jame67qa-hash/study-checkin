@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E6B52">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<title>學習打卡</title>
+<style>
+:root{
+  --bg:#F4F1E8;
+  --card:#FFFFFF;
+  --ink:#1C1E21;
+  --muted:#6B7280;
+  --line:#E5E0D4;
+  --accent:#1E6B52;
+  --accent-deep:#154D3C;
+  --accent-soft:#E7F0EA;
+  --done:#2E9E63;
+  --seal:#B23A2E;
+  --warn:#B7791F;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:-apple-system,'PingFang TC','Microsoft JhengHei','Noto Sans TC','Segoe UI',sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;background:var(--bg);position:relative;}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px;}
+.num{font-variant-numeric:tabular-nums;}
+
+/* ===== 頁首 ===== */
+header.app-head{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  padding:calc(10px + var(--safe-top)) 16px 10px;background:rgba(244,241,232,.92);
+  backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:9px;}
+.seal-logo{
+  width:34px;height:34px;border-radius:9px;flex:none;border:2.5px solid var(--seal);color:var(--seal);
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 30% 30%,rgba(178,58,46,.10),transparent 60%),rgba(255,255,255,.6);
+}
+.seal-logo svg{width:18px;height:18px;}
+.brand .t{font-size:18px;font-weight:800;letter-spacing:.5px;}
+.head-date{font-size:12px;color:var(--muted);text-align:right;line-height:1.3;}
+.head-date b{display:block;font-size:13px;color:var(--ink);font-weight:600;}
+
+/* ===== 主內容 ===== */
+main{padding:14px 14px calc(84px + var(--safe-bottom));}
+.view{display:none;}
+.view.active{display:block;}
+.sec-title{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--accent);margin:18px 2px 8px;}
+.sec-title:first-child{margin-top:2px;}
+
+/* ===== 卡片 ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 1px 2px rgba(28,30,33,.03);}
+.card h3{font-size:14px;font-weight:700;margin-bottom:2px;}
+.progress-card{background:linear-gradient(135deg,var(--accent-soft),#F2F7F3);border:1px solid #DCE9E1;}
+.progress-row{display:flex;align-items:center;gap:14px;}
+.ring{flex:none;width:74px;height:74px;}
+.ring .bg{stroke:#DCE9E1;}
+.ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .5s ease;}
+.ring .txt{font-size:18px;font-weight:800;fill:var(--accent-deep);}
+.pg-info{flex:1;min-width:0;}
+.pg-info .p1{font-size:13px;color:var(--accent-deep);font-weight:600;}
+.pg-info .p2{font-size:22px;font-weight:800;margin:2px 0 1px;}
+.pg-info .p2 small{font-size:13px;font-weight:600;color:var(--muted);}
+.pg-info .p3{font-size:12px;color:var(--muted);}
+.pg-meta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.pg-meta .tag{font-size:11px;color:var(--accent-deep);background:#fff;border:1px solid #CFE3D8;border-radius:999px;padding:3px 10px;}
+
+/* ===== 學習項目卡 ===== */
+.item{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px;}
+.item .name{font-size:15px;font-weight:700;padding-right:74px;}
+.chip{display:inline-block;padding:1px 8px;border-radius:7px;font-size:11px;font-weight:600;margin-top:7px;}
+.item .note{font-size:12.5px;color:#4B5563;margin-top:7px;}
+.item .dur{position:absolute;top:14px;right:14px;font-size:12px;color:var(--muted);}
+.done-line{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;color:var(--done);font-weight:700;}
+.done-line svg{width:15px;height:15px;flex:none;}
+.check-btn{
+  margin-top:10px;width:100%;padding:12px;border-radius:12px;background:var(--accent);color:#fff;
+  font-size:14px;font-weight:700;letter-spacing:1px;transition:transform .08s ease,background .2s ease;
+}
+.check-btn:active{transform:scale(.98);}
+.check-btn.ghost{background:transparent;color:var(--muted);border:1px dashed var(--line);font-weight:600;}
+
+/* 印章（簽名元素） */
+.seal{
+  position:absolute;right:10px;top:10px;width:60px;height:60px;
+  border:3px solid var(--seal);border-radius:11px;color:var(--seal);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;letter-spacing:2px;transform:rotate(-9deg);
+  background:radial-gradient(circle at 28% 28%,rgba(178,58,46,.10),transparent 55%),
+             radial-gradient(circle at 74% 70%,rgba(178,58,46,.13),transparent 60%),
+             rgba(255,255,255,.6);
+  box-shadow:0 2px 5px rgba(178,58,46,.20);
+  animation:stamp .42s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes stamp{
+  0%{transform:rotate(-9deg) scale(1.7);opacity:0;}
+  60%{transform:rotate(-9deg) scale(.94);opacity:1;}
+  100%{transform:rotate(-9deg) scale(1);}
+}
+.item.is-done{border-color:#CBE3D2;background:#FCFEFC;}
+
+/* 新增自訂 */
+.add-form{display:none;margin-top:10px;}
+.add-form.open{display:block;}
+.add-form input{
+  width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  font-size:14px;font-family:inherit;background:#FBF9F3;color:var(--ink);
+}
+.add-form input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.add-form .row2{display:flex;gap:8px;margin-top:8px;align-items:center;}
+.add-form .row2 input.dur{flex:0 0 96px;}
+.add-form .row2 .ok{flex:1;background:var(--accent);color:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:700;}
+.add-form .row2 .cancel{background:transparent;color:var(--muted);}
+
+/* ===== 計畫 ===== */
+.day-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px;}
+.day-card .d-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.day-card .d-name{font-size:14px;font-weight:800;}
+.day-card .d-total{font-size:12px;color:var(--muted);}
+.plan-item{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px dashed var(--line);}
+.plan-item:first-of-type{border-top:none;padding-top:2px;}
+.plan-item .pd{flex:1;min-width:0;}
+.plan-item .pn{font-size:13.5px;font-weight:700;}
+.plan-item .pdur{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.day-card.weekend{border-color:#B9CFE4;}
+
+/* ===== 統計 ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center;}
+.stat-card .sv{font-size:25px;font-weight:800;color:var(--accent-deep);}
+.stat-card .sv small{font-size:14px;}
+.stat-card .sl{font-size:12px;color:var(--muted);margin-top:2px;}
+.stat-card.heat .sv{color:var(--seal);}
+.bars{display:flex;align-items:flex-end;gap:8px;height:128px;padding-top:4px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;}
+.bar-track{width:100%;max-width:26px;background:#EDE9DC;border-radius:6px 6px 3px 3px;position:relative;overflow:hidden;flex:1;}
+.bar-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--accent),#4C8A6F);border-radius:6px 6px 3px 3px;transition:height .4s ease;}
+.bar-col.done-full .bar-fill{background:linear-gradient(180deg,var(--done),#5BB381);}
+.bar-col .bl{font-size:10px;color:var(--muted);}
+.bar-col .bv{font-size:10px;color:var(--muted);}
+.stats-note{font-size:12px;color:var(--muted);margin-top:10px;}
+
+/* ===== 記錄 ===== */
+.hist-empty{text-align:center;padding:40px 16px;color:var(--muted);font-size:13px;}
+.hist-empty .big{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.hist-day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px;}
+.hist-day .hd{display:flex;align-items:center;justify-content:space-between;}
+.hist-day .hd .dl{font-size:13.5px;font-weight:700;}
+.hist-day .hd .dl small{color:var(--muted);font-weight:600;margin-left:6px;}
+.hist-day .hd .st{font-size:12px;font-weight:700;}
+.hist-day .st.full{color:var(--done);}
+.hist-day .st.part{color:var(--warn);}
+.hist-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.hist-chip{font-size:11px;color:#3B3C3D;padding:2px 8px;border-radius:7px;}
+
+/* ===== 底部導覽 ===== */
+nav.tabbar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:30;
+  display:flex;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  padding-bottom:var(--safe-bottom);
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;color:var(--muted);font-size:11px;font-weight:600;min-height:56px;justify-content:center;}
+.tab svg{width:22px;height:22px;}
+.tab.active{color:var(--accent-deep);}
+.tab.active svg{stroke:var(--accent-deep);}
+@media (prefers-reduced-motion:reduce){
+  .seal{animation:none;}
+  .ring .fg,.bar-fill{transition:none;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-head">
+    <div class="brand">
+      <div class="seal-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+      </div>
+      <div class="t">學習打卡</div>
+    </div>
+    <div class="head-date"><b id="headDateLabel">—</b><span id="headDateSub">—</span></div>
+  </header>
+
+  <main>
+    <section class="view" id="view-today" data-route="today"></section>
+    <section class="view" id="view-plan" data-route="plan"></section>
+    <section class="view" id="view-stats" data-route="stats"></section>
+    <section class="view" id="view-history" data-route="history"></section>
+  </main>
+
+  <nav class="tabbar" aria-label="主要導覽">
+    <button class="tab" data-go="today" aria-label="今日打卡">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.8V6M16 2.8V6"/><path d="M9.5 15.5 11.5 17.5 15 13.5"/></svg>
+      <span>今日</span>
+    </button>
+    <button class="tab" data-go="plan" aria-label="每週計畫">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3V4.5Z"/><path d="M7 20a3 3 0 0 1 0-6h11"/><path d="M8 9h6M8 12.5h4"/></svg>
+      <span>計畫</span>
+    </button>
+    <button class="tab" data-go="stats" aria-label="統計">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>統計</span>
+    </button>
+    <button class="tab" data-go="history" aria-label="打卡記錄">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+      <span>記錄</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ===== 工具 ===== */
+function pad(n){return (n<10?'0':'')+n;}
+function dateObj(str){var p=str.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function keyOf(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function shiftKey(key,days){var d=dateObj(key);d.setDate(d.getDate()+days);return keyOf(d);}
+function weekdayOf(key){return dateObj(key).getDay();} /* 0=日 … 6=六 */
+function nowTime(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes());}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ===== 科目配色 ===== */
+var CATS={
+  ch:{bg:'#ECEAF9',bd:'#9EACEA'},
+  en:{bg:'#FBE7EB',bd:'#EAA7B2'},
+  ma:{bg:'#E4F4EF',bd:'#94D8C3'},
+  ac:{bg:'#FBEADF',bd:'#F4B393'},
+  ec:{bg:'#F6F0D9',bd:'#E4D48F'},
+  pc:{bg:'#E7F2F7',bd:'#A3D5E8'},
+  bu:{bg:'#F0EAF7',bd:'#C9A7E8'},
+  rev:{bg:'#EFEBDD',bd:'#C9C2AD'},
+  cu:{bg:'#E7F0EA',bd:'#8FB8A4'}
+};
+var CATNAME={ch:'國文',en:'英文',ma:'數學',ac:'會計',ec:'經濟',pc:'電腦',bu:'商業',rev:'總複習',cu:'自訂'};
+
+/* ===== 每週計畫，索引對應 getDay()：0=日 1=一 2=二 3=三 4=四 5=五 6=六 ===== */
+var PLAN=[
+  [/*日*/{subj:'預習國文＋英文',dur:90,note:'預習下週進度',cat:'rev'},
+         {subj:'預習數學＋會計／經濟',dur:90,note:'預習下週進度',cat:'rev'},
+         {subj:'整理筆記＋訂目標',dur:75,note:'錯題本整理、訂下週目標，21:30 前收工',cat:'rev'}],
+  [/*一*/{subj:'英文',dur:60,note:'背單字 10 個＋複習當天英語會話句型',cat:'en'},
+         {subj:'數學',dur:60,note:'複習當天應用數學進度＋練 3~5 題',cat:'ma'}],
+  [/*二*/{subj:'會計',dur:70,note:'複習當天進度＋分錄／報表練習',cat:'ac'},
+         {subj:'電腦實作',dur:50,note:'複習當天數位科技／軟體操作',cat:'pc'}],
+  [/*三*/{subj:'經濟',dur:70,note:'複習當天進度＋名詞與圖表整理',cat:'ec'},
+         {subj:'會計',dur:50,note:'趁記憶新鮮補弱點、做錯題',cat:'ac'}],
+  [/*四*/{subj:'數學',dur:70,note:'練弱點題型＋當天進度習題',cat:'ma'},
+         {subj:'英文',dur:50,note:'單字複習＋文法筆記整理',cat:'en'}],
+  [/*五*/{subj:'經濟',dur:60,note:'當週重點統整＋整理名詞表',cat:'ec'},
+         {subj:'國文',dur:60,note:'課文／註釋複習、完成作業',cat:'ch'}],
+  [/*六*/{subj:'國英數總複習',dur:90,note:'當週總複習＋錯題回顧',cat:'rev'},
+         {subj:'會計／經濟',dur:90,note:'重點整理＋習題演練',cat:'ac'},
+         {subj:'商業實務',dur:90,note:'複習＋完成作業',cat:'bu'},
+         {subj:'電腦練習＋小測',dur:60,note:'數位／軟體／資料庫操作＋當週小測',cat:'pc'}]
+];
+var DAYNAME=['週日','週一','週二','週三','週四','週五','週六'];
+var DAYNOTE=['預習收心日','平日','平日','平日','平日','平日','深度複習日'];
+function isWeekendKey(key){var w=weekdayOf(key);return w===0||w===6;}
+
+/* ===== 資料 ===== */
+var LS_KEY='studyCheckin_v1';
+var state=load();
+function load(){
+  try{
+    var raw=localStorage.getItem(LS_KEY);
+    if(raw){var o=JSON.parse(raw);if(o&&o.records)return o;}
+  }catch(e){}
+  return {records:{}};
+}
+function save(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
+}
+function rec(key){
+  if(!state.records[key])state.records[key]={plan:[],custom:[]};
+  var r=state.records[key];
+  if(r.plan.length===0){
+    var sessions=PLAN[weekdayOf(key)];
+    for(var i=0;i<sessions.length;i++)r.plan.push({done:false,time:null});
+  }
+  return r;
+}
+function planSessions(key){return PLAN[weekdayOf(key)];}
+function totalSessions(key){var r=rec(key);return r.plan.length+r.custom.length;}
+function doneCount(key){var r=rec(key);var c=0,i;for(i=0;i<r.plan.length;i++)if(r.plan[i].done)c++;for(i=0;i<r.custom.length;i++)if(r.custom[i].done)c++;return c;}
+function sumDur(key){var s=planSessions(key);var t=0,i;for(i=0;i<s.length;i++)t+=s[i].dur;var r=rec(key);for(i=0;i<r.custom.length;i++)t+=(r.custom[i].dur||0);return t;}
+function isFull(key){var r=rec(key);if(r.plan.length===0)return false;for(var i=0;i<r.plan.length;i++)if(!r.plan[i].done)return false;return true;}
+
+/* ===== 今日畫面 ===== */
+function chipHtml(cat,label){
+  var c=CATS[cat]||CATS.cu;
+  return '<span class="chip" style="background:'+c.bg+';border:1px solid '+c.bd+';">'+esc(label)+'</span>';
+}
+function itemCard(item,type,idx){
+  var seal=item.done?'<div class="seal" aria-hidden="true">完成</div>':'';
+  var doneLine=item.done?'<div class="done-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>已完成 · '+esc(item.time||'')+'</div>':'';
+  var actions='';
+  if(!item.done){
+    actions+='<button class="check-btn" data-act="check" data-type="'+type+'" data-idx="'+idx+'">打卡</button>';
+    if(type==='custom')actions+='<button class="check-btn ghost" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
+  }else{
+    actions+='<button class="check-btn ghost" data-act="uncheck" data-type="'+type+'" data-idx="'+idx+'">取消打卡</button>';
+    if(type==='custom')actions+='<button class="check-btn ghost" data-act="delcustom" data-idx="'+idx+'">刪除</button>';
+  }
+  return '<div class="item'+(item.done?' is-done':'')+'">'+seal+
+    '<div class="name">'+esc(item.subj)+'</div>'+
+    '<span class="dur">'+item.dur+' 分</span>'+
+    chipHtml(item.cat,CATNAME[item.cat]||item.cat)+
+    '<div class="note">'+esc(item.note||'')+'</div>'+
+    doneLine+actions+'</div>';
+}
+function renderToday(){
+  var key=todayKey();
+  var r=rec(key);
+  var sessions=planSessions(key);
+  var total=totalSessions(key),done=doneCount(key),dur=sumDur(key);
+  var wd=weekdayOf(key),lab=keyToLabel(key),isWk=isWeekendKey(key);
+  var pct=total?Math.round(done/total*100):0;
+  var ring=2*Math.PI*30,off=ring*(1-pct/100);
+  /* 合併計畫範本與打卡狀態 */
+  function sessionItem(i){
+    var t=sessions[i],p=r.plan[i];
+    return {subj:t.subj,dur:t.dur,note:t.note,cat:t.cat,done:!!p.done,time:p.time};
+  }
+
+  var html='<div class="progress-card card">';
+  html+='<div class="progress-row">';
+  html+='<svg class="ring" viewBox="0 0 74 74" width="74" height="74">'+
+    '<circle class="bg" cx="37" cy="37" r="30" fill="none" stroke-width="7"></circle>'+
+    '<circle class="fg" cx="37" cy="37" r="30" fill="none" stroke-width="7" stroke-dasharray="'+ring+'" stroke-dashoffset="'+off+'" transform="rotate(-90 37 37)"></circle>'+
+    '<text class="txt" x="37" y="42" text-anchor="middle">'+pct+'%</text></svg>';
+  html+='<div class="pg-info"><div class="p1">今日進度</div>'+
+    '<div class="p2 num">'+done+'<small> / '+total+' 項</small></div>'+
+    '<div class="p3">總計 '+dur+' 分鐘 · '+lab.wd+(isWk?'（假日）':'（平日）')+'</div></div>';
+  html+='</div><div class="pg-meta">'+
+    '<span class="tag">'+lab.md+'</span>'+
+    '<span class="tag">'+(isWk?DAYNOTE[wd]:'最多 2 小時')+'</span>'+
+    (pct===100?'<span class="tag">全部完成</span>':'')+
+    '</div></div>';
+
+  html+='<div class="sec-title">今天要做的</div>';
+  for(var i=0;i<sessions.length;i++)html+=itemCard(sessionItem(i),'plan',i);
+  if(r.custom.length){
+    html+='<div class="sec-title">自訂項目</div>';
+    for(var j=0;j<r.custom.length;j++)html+=itemCard(r.custom[j],'custom',j);
+  }
+  html+='<button class="check-btn ghost" id="addToggle">＋ 新增自訂項目</button>';
+  html+='<div class="add-form card" id="addForm">'+
+    '<h3>新增今天的學習項目</h3>'+
+    '<input id="afName" placeholder="項目名稱，例如：練證照題庫" maxlength="24">'+
+    '<div class="row2"><input class="dur" id="afDur" type="number" min="5" step="5" value="30" placeholder="分鐘">'+
+    '<button class="ok" id="afOk">加入</button>'+
+    '<button class="ok cancel" id="afCancel">取消</button></div></div>';
+
+  document.getElementById('view-today').innerHTML=html;
+
+  var addT=document.getElementById('addToggle'),addF=document.getElementById('addForm');
+  function setOpen(open){
+    addF.classList.toggle('open',open);
+    addT.style.display=open?'none':'inline-block';
+  }
+  addT.addEventListener('click',function(){setOpen(true);document.getElementById('afName').focus();});
+  document.getElementById('afCancel').addEventListener('click',function(){setOpen(false);});
+  document.getElementById('afOk').addEventListener('click',function(){
+    var n=document.getElementById('afName').value.trim();
+    var d=parseInt(document.getElementById('afDur').value,10);
+    if(!n){document.getElementById('afName').focus();return;}
+    if(!d||d<5)d=30;
+    rec(todayKey()).custom.push({id:Date.now(),subj:n,dur:d,note:'自訂項目',cat:'cu',done:false,time:null});
+    save();renderToday();
+  });
+  updateHead();
+}
+
+/* ===== 計畫畫面 ===== */
+function planDayCard(w,extraClass){
+  var s=PLAN[w],tot=0,i;
+  for(i=0;i<s.length;i++)tot+=s[i].dur;
+  var h='<div class="day-card'+(extraClass?' '+extraClass:'')+'">'+
+    '<div class="d-head"><span class="d-name">'+DAYNAME[w]+' · '+DAYNOTE[w]+'</span><span class="d-total">'+(w===0||w===6?'約 '+(Math.round(tot/60))+' 小時':'共 '+tot+' 分鐘')+'</span></div>';
+  for(i=0;i<s.length;i++){
+    h+='<div class="plan-item"><div class="pd"><div class="pn">'+esc(s[i].subj)+'</div>'+
+      '<div class="pdur">'+esc(s[i].note)+'</div></div>'+
+      chipHtml(s[i].cat,CATNAME[s[i].cat])+'<div class="pdur" style="flex:none">'+s[i].dur+' 分</div></div>';
+  }
+  return h+'</div>';
+}
+function renderPlan(){
+  var html='<div class="sec-title">平日 · 每天最多 2 小時、1–2 科</div>';
+  for(var w=1;w<=5;w++)html+=planDayCard(w,'');
+  html+='<div class="sec-title">假日 · 每天最多 5 小時</div>';
+  html+=planDayCard(6,'weekend');
+  html+=planDayCard(0,'weekend');
+  html+='<div class="stats-note">電腦、商業實務等實作科目課堂時數已多，回家以作業與複習為主。</div>';
+  document.getElementById('view-plan').innerHTML=html;
+}
+
+/* ===== 統計畫面 ===== */
+function keyToLabel(key){
+  var d=dateObj(key);
+  return {md:(d.getMonth()+1)+'月'+d.getDate()+'日',wd:DAYNAME[d.getDay()]};
+}
+function currentMondayKey(){
+  var d=new Date();var w=d.getDay()===0?7:d.getDay();
+  d.setDate(d.getDate()-(w-1));
+  return keyOf(d);
+}
+function streakCount(){
+  var key=todayKey();
+  if(!isFull(key))key=shiftKey(key,-1);
+  var n=0;
+  while(isFull(key)){n++;key=shiftKey(key,-1);}
+  return n;
+}
+function weekStats(){
+  var mon=currentMondayKey(),done=0,total=0,days=[],i;
+  for(i=0;i<7;i++){
+    var k=shiftKey(mon,i),d=doneCount(k),t=totalSessions(k);
+    done+=d;total+=t;
+    days.push({d:d,t:t,label:DAYNAME[weekdayOf(k)].slice(1)});
+  }
+  return {done:done,total:total,days:days,rate:total?Math.round(done/total*100):0};
+}
+function totalAllCheckins(){
+  var n=0,k,i;
+  for(k in state.records){
+    var r=state.records[k];
+    for(i=0;i<r.plan.length;i++)if(r.plan[i].done)n++;
+    for(i=0;i<r.custom.length;i++)if(r.custom[i].done)n++;
+  }
+  return n;
+}
+function renderStats(){
+  var wk=weekStats(),streak=streakCount(),all=totalAllCheckins();
+  var html='<div class="stat-grid">'+
+    '<div class="stat-card heat"><div class="sv num">'+streak+'<small>天</small></div><div class="sl">連續完整達成</div></div>'+
+    '<div class="stat-card"><div class="sv num">'+wk.rate+'<small>%</small></div><div class="sl">本週完成率</div></div>'+
+    '<div class="stat-card"><div class="sv num">'+all+'</div><div class="sl">累計打卡次數</div></div>'+
+    '<div class="stat-card"><div class="sv num">'+wk.done+'<small> / '+wk.total+'</small></div><div class="sl">本週完成項目</div></div>'+
+    '</div>';
+  html+='<div class="sec-title">本週每日進度</div>';
+  html+='<div class="card"><div class="bars">';
+  for(var i=0;i<7;i++){
+    var day=wk.days[i],pct=day.t?Math.round(day.d/day.t*100):0;
+    html+='<div class="bar-col'+(day.t>0&&day.d===day.t?' done-full':'')+'">'+
+      '<span class="bv num">'+day.d+'/'+day.t+'</span>'+
+      '<div class="bar-track"><div class="bar-fill" style="height:'+pct+'%"></div></div>'+
+      '<span class="bl">'+day.label+'</span></div>';
+  }
+  html+='</div></div>';
+  html+='<div class="stats-note">「連續完整達成」= 當天計畫項目全部完成且連續不中斷。到「今日」完成項目，記錄就會累積到這裡。</div>';
+  document.getElementById('view-stats').innerHTML=html;
+}
+
+/* ===== 記錄畫面 ===== */
+function renderHistory(){
+  var keys=Object.keys(state.records).filter(function(k){return doneCount(k)>0;}).sort().reverse();
+  var html='<div class="sec-title">打卡記錄</div>';
+  if(keys.length===0){
+    html+='<div class="hist-empty"><div class="big">還沒有打卡記錄</div>去「今日」完成一項學習，就會記錄在這裡。</div>';
+  }else{
+    var shown=keys.slice(0,90);
+    for(var i=0;i<shown.length;i++){
+      var k=shown[i],lab=keyToLabel(k),d=doneCount(k),t=totalSessions(k),full=isFull(k);
+      var r=state.records[k],chips=[],j;
+      for(j=0;j<r.plan.length;j++)if(r.plan[j].done){
+        var c=CATS[planSessions(k)[j].cat];
+        chips.push('<span class="hist-chip" style="background:'+c.bg+';border:1px solid '+c.bd+';">'+esc(planSessions(k)[j].subj)+' · '+esc(r.plan[j].time)+'</span>');
+      }
+      for(j=0;j<r.custom.length;j++)if(r.custom[j].done){
+        chips.push('<span class="hist-chip" style="background:'+CATS.cu.bg+';border:1px solid '+CATS.cu.bd+';">'+esc(r.custom[j].subj)+' · '+esc(r.custom[j].time)+'</span>');
+      }
+      html+='<div class="hist-day"><div class="hd"><div class="dl">'+lab.md+'<small>'+lab.wd+'</small></div>'+
+        '<span class="st '+(full?'full':'part')+'">'+d+'/'+t+' 完成</span></div>'+
+        '<div class="hist-chips">'+(chips.join('')||'<span style="font-size:11px;color:#9AA0A6">無</span>')+'</div></div>';
+    }
+    if(keys.length>90)html+='<div class="stats-note">僅顯示最近 90 天。</div>';
+  }
+  document.getElementById('view-history').innerHTML=html;
+}
+
+/* ===== 互動事件 ===== */
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('button[data-act]');
+  if(!btn)return;
+  var act=btn.getAttribute('data-act'),key=todayKey(),r,it,type,idx;
+  if(act==='check'||act==='uncheck'){
+    type=btn.getAttribute('data-type');idx=+btn.getAttribute('data-idx');
+    r=rec(key);it=type==='plan'?r.plan[idx]:r.custom[idx];
+    it.done=(act==='check');it.time=it.done?nowTime():null;
+    save();renderToday();
+  }else if(act==='delcustom'){
+    idx=+btn.getAttribute('data-idx');
+    rec(key).custom.splice(idx,1);save();renderToday();
+  }
+});
+
+/* ===== 路由 ===== */
+function todayKey(){return keyOf(new Date());}
+function updateHead(){
+  var k=todayKey(),lab=keyToLabel(k);
+  document.getElementById('headDateLabel').textContent=lab.md;
+  document.getElementById('headDateSub').textContent=lab.wd+(isWeekendKey(k)?' · 假日':'');
+}
+var RENDER={today:renderToday,plan:renderPlan,stats:renderStats,history:renderHistory};
+function route(){
+  var h=(location.hash||'#today').replace('#','');
+  if(!RENDER[h])h='today';
+  var views=document.querySelectorAll('.view'),i;
+  for(i=0;i<views.length;i++)views[i].classList.toggle('active',views[i].getAttribute('data-route')===h);
+  var tabs=document.querySelectorAll('.tab');
+  for(i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-go')===h);
+  RENDER[h]();
+}
+window.addEventListener('hashchange',route);
+var tabs=document.querySelectorAll('.tab');
+for(var ti=0;ti<tabs.length;ti++){
+  (function(t){t.addEventListener('click',function(){location.hash=t.getAttribute('data-go');});})(tabs[ti]);
+}
+
+/* ===== 初始化 ===== */
+route();
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});
+}
+})();
+</script>
+</body>
+</html>
